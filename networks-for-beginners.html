@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Computer Networks For Beginners</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#11192b; --card2:#0e1526; --text:#f1f4f9; --text-dim:#8b96ab;
+  --hair:rgba(255,255,255,0.1); --good:#33e0a1; --bad:#ff6767;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.nb-page{display:none; min-height:100vh; padding:60px 20px 80px;}
+.nb-page.active{display:block;}
+.nb-btn{
+  font-family:inherit; font-size:14.5px; font-weight:600; color:#0b1220;
+  background:#f1f4f9; border:none; border-radius:24px; padding:13px 28px;
+  cursor:pointer; transition:transform .15s,opacity .15s;
+}
+.nb-btn:hover{opacity:.85;}
+.nb-btn:active{transform:scale(.97);}
+.nb-btn.ghost{background:transparent; color:var(--text); border:1px solid var(--hair);}
+.nb-btn[disabled]{opacity:.35; cursor:not-allowed;}
+
+/* ---- title page ---- */
+#nb-title.active{display:flex; align-items:center; justify-content:center; text-align:center;}
+.nb-title-inner{max-width:640px;}
+.nb-hero-art{margin-bottom:8px;}
+.nb-hero-art svg{width:100%; max-width:340px; height:auto;}
+.nb-title-inner h1{font-size:clamp(30px,5.5vw,50px); font-weight:700; letter-spacing:-0.02em; line-height:1.15; margin-bottom:18px;}
+.nb-title-inner p{font-size:16.5px; color:var(--text-dim); margin-bottom:34px;}
+
+/* ---- bubbles page ---- */
+.nb-hero{text-align:center; margin-bottom:20px;}
+.nb-hero h2{font-size:clamp(24px,4.5vw,36px); font-weight:700; letter-spacing:-0.02em; margin-bottom:10px;}
+.nb-hero p{font-size:15px; color:var(--text-dim); max-width:46ch; margin:0 auto;}
+
+.nb-progress-wrap{max-width:480px; margin:26px auto 6px;}
+.nb-progress-track{height:10px; border-radius:6px; background:var(--card); overflow:hidden; border:1px solid var(--hair);}
+.nb-progress-fill{height:100%; width:0%; background:linear-gradient(90deg,#4da3ff,#33e0c1); transition:width .5s ease;}
+.nb-progress-label{text-align:center; font-size:13px; color:var(--text-dim); margin-top:8px;}
+
+.nb-stage-wrap{max-width:920px; margin:20px auto 0; padding:0 4px;}
+.nb-stage{
+  position:relative; width:100%; height:min(56vh,460px); min-height:300px; border-radius:26px; overflow:hidden;
+  background:radial-gradient(circle at 30% 20%,#16233d 0%,#0a0f1c 70%); border:1px solid var(--hair);
+}
+.nb-stage canvas{position:absolute; inset:0; width:100%; height:100%;}
+.nb-bubble{
+  position:absolute; width:92px; height:92px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:16px; color:#0b1220; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,.35);
+  animation:nbpulse 2.6s ease-in-out infinite; user-select:none; -webkit-tap-highlight-color:transparent;
+}
+@media (max-width:520px){ .nb-bubble{width:70px; height:70px; font-size:13px;} }
+@keyframes nbpulse{ 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.12);} }
+.nb-bubble.done::after{
+  content:'✓'; position:absolute; top:-4px; right:-4px; width:22px; height:22px; border-radius:50%;
+  background:#0b1220; color:#33e0a1; font-size:13px; display:flex; align-items:center; justify-content:center; border:2px solid #33e0a1;
+}
+
+.nb-controls{display:flex; justify-content:center; gap:12px; margin:22px 0 8px; flex-wrap:wrap;}
+.nb-hint{text-align:center; font-size:12.5px; color:var(--text-dim); margin-bottom:10px;}
+.nb-unlock{
+  text-align:center; margin:26px auto 40px; max-width:480px; padding:20px; border-radius:16px;
+  background:linear-gradient(135deg,#16233d,#0e1526); border:1px solid var(--hair); display:none;
+}
+.nb-unlock.show{display:block;}
+.nb-unlock p{font-size:14.5px; color:var(--text-dim); margin-bottom:14px;}
+
+/* ---- modal ---- */
+.nb-modal-backdrop{
+  position:fixed; inset:0; background:rgba(4,8,16,.72); backdrop-filter:blur(6px); display:flex;
+  align-items:center; justify-content:center; padding:24px; z-index:100; opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.nb-modal-backdrop.open{opacity:1; pointer-events:auto;}
+.nb-modal{background:var(--card); border-radius:22px; max-width:440px; width:100%; padding:34px 30px 28px; position:relative; transform:translateY(16px); transition:transform .25s; border:1px solid var(--hair);}
+.nb-modal-backdrop.open .nb-modal{transform:translateY(0);}
+.nb-modal-close{position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.08); border:none; color:var(--text); font-size:16px; cursor:pointer;}
+.nb-modal-badge{display:inline-block; font-size:12px; font-weight:700; border-radius:16px; padding:4px 12px; margin-bottom:16px; color:#0b1220;}
+.nb-modal h2{font-size:21px; font-weight:700; margin-bottom:4px;}
+.nb-modal .range{font-size:13px; color:var(--text-dim); margin-bottom:16px;}
+.nb-modal .tagline{font-size:15.5px; font-weight:500; margin-bottom:12px;}
+.nb-modal p.body{font-size:14px; line-height:1.6; margin-bottom:12px;}
+.nb-modal p.example{font-size:13px; line-height:1.6; color:var(--text-dim); font-style:italic;}
+.nb-modal p.example b{font-style:normal; color:var(--text);}
+.nb-modal-nav{display:flex; justify-content:space-between; margin-top:22px;}
+.nb-modal-nav button{font-family:inherit; background:none; border:1px solid var(--hair); color:var(--text); border-radius:20px; padding:8px 16px; font-size:13px; cursor:pointer;}
+
+/* ---- game page ---- */
+.nb-game-head{display:flex; align-items:center; justify-content:space-between; max-width:840px; margin:0 auto 18px; flex-wrap:wrap; gap:10px;}
+.nb-score{font-size:13px; color:var(--text-dim); font-weight:600;}
+.nb-level-badge{font-size:12px; font-weight:700; color:#0b1220; background:#4da3ff; border-radius:14px; padding:5px 12px;}
+.nb-challenge{max-width:840px; margin:0 auto 20px; text-align:center;}
+.nb-challenge h2{font-size:clamp(22px,4vw,30px); font-weight:700; letter-spacing:-0.01em; margin-bottom:8px;}
+.nb-challenge p{font-size:14.5px; color:var(--text-dim);}
+
+.nb-palette{max-width:840px; margin:0 auto 18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+.nb-tile{
+  display:flex; flex-direction:column; align-items:center; gap:6px; background:var(--card); border:1px solid var(--hair);
+  border-radius:14px; padding:12px 14px; cursor:pointer; font-size:12px; color:var(--text-dim); min-width:74px;
+}
+.nb-tile:hover{border-color:#4da3ff;}
+.nb-tile svg{width:30px; height:30px;}
+
+.nb-workspace-wrap{max-width:840px; margin:0 auto 18px;}
+.nb-workspace{
+  position:relative; width:100%; height:340px; border-radius:20px; background:var(--card2);
+  border:1px solid var(--hair); overflow:hidden;
+}
+.nb-workspace svg.nb-edges{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+.nb-node{
+  position:absolute; width:74px; display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:8px; border-radius:12px; background:var(--card); border:2px solid var(--hair); cursor:grab; touch-action:none;
+}
+.nb-node.selected{border-color:#4da3ff; box-shadow:0 0 0 3px rgba(77,163,255,.25);}
+.nb-node svg{width:28px; height:28px;}
+.nb-node span{font-size:10.5px; color:var(--text-dim);}
+.nb-node .nb-remove{
+  position:absolute; top:-8px; right:-8px; width:20px; height:20px; border-radius:50%; background:#ff6767; color:#fff;
+  border:none; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.nb-empty-hint{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:13.5px; text-align:center; padding:20px; pointer-events:none;}
+
+.nb-game-actions{max-width:840px; margin:0 auto; display:flex; justify-content:center; gap:12px; flex-wrap:wrap;}
+.nb-feedback{max-width:600px; margin:18px auto 0; text-align:center; padding:16px; border-radius:14px; font-size:14px; display:none;}
+.nb-feedback.show{display:block;}
+.nb-feedback.good{background:rgba(51,224,161,.12); color:var(--good); border:1px solid rgba(51,224,161,.3);}
+.nb-feedback.bad{background:rgba(255,103,103,.12); color:var(--bad); border:1px solid rgba(255,103,103,.3);}
+
+/* ---- results ---- */
+#nb-results.active{display:flex; align-items:center; justify-content:center; text-align:center;}
+.nb-results-inner{max-width:560px;}
+.nb-results-art svg{width:100%; max-width:150px; height:auto; margin-bottom:10px;}
+.nb-results-inner h1{font-size:clamp(28px,5vw,42px); font-weight:700; margin-bottom:10px;}
+.nb-results-inner .score-big{font-size:44px; font-weight:700; color:#33e0c1; margin:18px 0;}
+.nb-results-inner p{color:var(--text-dim); font-size:15px; margin-bottom:26px;}
+.nb-credits{margin-top:40px; padding-top:26px; border-top:1px solid var(--hair);}
+.nb-credits h4{font-size:12px; letter-spacing:.04em; color:var(--text-dim); margin-bottom:10px; text-transform:uppercase;}
+.nb-credits ul{list-style:none; font-size:14px; line-height:1.9;}
+.nb-results-actions{display:flex; justify-content:center; gap:12px; margin-top:24px; flex-wrap:wrap;}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<div id="app">
+
+<section class="nb-page active" id="nb-title">
+  <div class="nb-title-inner">
+    <div class="nb-hero-art">
+      <svg viewBox="0 0 340 130" fill="none">
+        <path d="M60 90 L170 40 L280 85 M170 40 L170 95 M60 90 L280 85" stroke="#2a3550" stroke-width="1.5"/>
+        <circle cx="60" cy="90" r="9" fill="#ff6fb0"/>
+        <circle cx="170" cy="40" r="12" fill="#4da3ff"/>
+        <circle cx="170" cy="95" r="9" fill="#33e0c1"/>
+        <circle cx="280" cy="85" r="9" fill="#b98bff"/>
+        <circle cx="220" cy="30" r="9" fill="#ffb648"/>
+        <path d="M170 40 L220 30" stroke="#2a3550" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <h1>Computer Networks For Beginners<br>— All You Need To Know</h1>
+    <p>Five network types, real-world examples, and a hands-on game to prove you've got it.</p>
+    <button class="nb-btn" id="nb-start-btn">Start Learning →</button>
+  </div>
+</section>
+
+<section class="nb-page" id="nb-bubbles">
+  <div class="nb-hero">
+    <h2>Tap a network to learn it.</h2>
+    <p>Five nodes, floating and connecting like a live network. Read all five to light up the whole grid and unlock the game.</p>
+  </div>
+
+  <div class="nb-progress-wrap">
+    <div class="nb-progress-track"><div class="nb-progress-fill" id="nb-progress-fill"></div></div>
+    <div class="nb-progress-label" id="nb-progress-label">0 / 5 read</div>
+  </div>
+
+  <div class="nb-stage-wrap">
+    <div class="nb-stage" id="nb-stage"><canvas id="nb-lines"></canvas></div>
+  </div>
+
+  <div class="nb-controls">
+    <button class="nb-btn ghost" id="nb-toggle-btn">Stop animation</button>
+  </div>
+  <p class="nb-hint" id="nb-hint">Bubbles float and bounce — click one anytime to open it.</p>
+
+  <div class="nb-unlock" id="nb-unlock">
+    <p>🎉 All five read — the network builder game is unlocked!</p>
+    <button class="nb-btn" id="nb-play-btn">Play the Game →</button>
+  </div>
+
+</section>
+
+<section class="nb-page" id="nb-game">
+  <div class="nb-game-head">
+    <button class="nb-btn ghost" id="nb-back-btn">← Back to Learn</button>
+    <span class="nb-score">Score: <span id="nb-score-val">0</span> / 300</span>
+    <span class="nb-level-badge" id="nb-level-badge">Level 1 of 3</span>
+  </div>
+  <div class="nb-challenge">
+    <h2 id="nb-challenge-title"></h2>
+    <p id="nb-challenge-desc"></p>
+  </div>
+  <div class="nb-palette" id="nb-palette"></div>
+  <div class="nb-workspace-wrap">
+    <div class="nb-workspace" id="nb-workspace">
+      <svg class="nb-edges" id="nb-edges"></svg>
+      <div class="nb-empty-hint" id="nb-empty-hint">Click components above to add them here, then click two components to connect them.</div>
+    </div>
+  </div>
+  <div class="nb-game-actions">
+    <button class="nb-btn" id="nb-check-btn">Check My Network</button>
+    <button class="nb-btn ghost" id="nb-reset-btn">Reset</button>
+  </div>
+  <div class="nb-feedback" id="nb-feedback"></div>
+</section>
+
+<section class="nb-page" id="nb-results">
+  <div class="nb-results-inner">
+    <div class="nb-results-art">
+      <svg viewBox="0 0 140 140" fill="none">
+        <circle cx="70" cy="70" r="52" stroke="#33e0c1" stroke-width="2" opacity="0.35"/>
+        <path d="M20 100 L50 70 L90 50 L120 40" stroke="#2a3550" stroke-width="1.5"/>
+        <circle cx="20" cy="100" r="6" fill="#ff6fb0"/>
+        <circle cx="50" cy="70" r="6" fill="#4da3ff"/>
+        <circle cx="90" cy="50" r="6" fill="#b98bff"/>
+        <circle cx="120" cy="40" r="6" fill="#ffb648"/>
+        <path d="M52 72 L65 85 L92 55" stroke="#33e0c1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>🎉 Network Complete!</h1>
+    <p>You built a LAN, linked three buildings, and connected Mumbai to Delhi.</p>
+    <div class="score-big" id="nb-final-score">300 / 300</div>
+    <div class="nb-results-actions">
+      <button class="nb-btn" id="nb-replay-btn">Play Again</button>
+      <button class="nb-btn ghost" id="nb-relearn-btn">Back to Learn</button>
+    </div>
+    <div class="nb-credits">
+      <h4>Created by</h4>
+      <ul>
+        <li>Mathews B Mathew (2504048)</li>
+        <li>Allen Ajit (2504033)</li>
+        <li>Shon Christo Shaji (2504034)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="nb-modal-backdrop" id="nb-modalBackdrop">
+  <div class="nb-modal">
+    <button class="nb-modal-close" id="nb-modal-close">✕</button>
+    <span class="nb-modal-badge" id="nb-mBadge"></span>
+    <h2 id="nb-mName"></h2>
+    <div class="range" id="nb-mRange"></div>
+    <div class="tagline" id="nb-mTag"></div>
+    <p class="body" id="nb-mBody"></p>
+    <p class="example" id="nb-mExample"></p>
+    <div class="nb-modal-nav">
+      <button id="nb-mPrev">← Previous</button>
+      <button id="nb-mNext">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+/* ---------------- shared: pages ---------------- */
+function showPage(id){
+  document.querySelectorAll('.nb-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='nb-bubbles') initBubblesOnce();
+  if(id==='nb-game') renderLevel();
+}
+document.getElementById('nb-start-btn').addEventListener('click', ()=>showPage('nb-bubbles'));
+document.getElementById('nb-back-btn').addEventListener('click', ()=>showPage('nb-bubbles'));
+document.getElementById('nb-relearn-btn').addEventListener('click', ()=>showPage('nb-bubbles'));
+
+/* ---------------- icons ---------------- */
+const ICONS = {
+  PC:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" style="color:#4da3ff"><rect x="6" y="8" width="28" height="18" rx="2"/><path d="M16 30h8M20 26v4"/></svg>`,
+  Phone:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" style="color:#ff6fb0"><rect x="13" y="5" width="14" height="30" rx="3"/><path d="M18 31h4"/></svg>`,
+  Printer:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" style="color:#ffb648"><rect x="9" y="14" width="22" height="12" rx="2"/><path d="M12 14V8h16v6M13 26v6h14v-6"/></svg>`,
+  Switch:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" style="color:#33e0c1"><rect x="6" y="14" width="28" height="12" rx="2"/><path d="M11 26v3M17 26v3M23 26v3M29 26v3"/></svg>`,
+  Router:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" style="color:#b98bff"><rect x="7" y="18" width="26" height="10" rx="2"/><path d="M14 18c0-5 3-8 3-8M26 18c0-5-3-8-3-8"/></svg>`,
+  Server:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" style="color:#6be0a1"><rect x="9" y="6" width="22" height="10" rx="1.5"/><rect x="9" y="18" width="22" height="10" rx="1.5"/><circle cx="14" cy="11" r="1.4" fill="currentColor"/><circle cx="14" cy="23" r="1.4" fill="currentColor"/></svg>`
+};
+
+/* ==================================================================
+   BUBBLE / LEARNING PAGE
+   ================================================================== */
+const TYPES = [
+ {code:'PAN', name:'Personal Area Network', range:'~1–10 m', color:'#ff6fb0',
+  tag:'Just you and your gadgets.',
+  body:"The smallest ring of all — the network wrapped around one person. No router, no switch, just short-range radio straight between your own devices.",
+  example:"Your phone streaming to your wireless earbuds while your smartwatch buzzes with a message, all three talking over Bluetooth as you walk to class."},
+ {code:'LAN', name:'Local Area Network', range:'~10 m – 1 km', color:'#4da3ff',
+  tag:'One roof, one wire, everyone in.',
+  body:"One site, one owner, wired together. A LAN belongs to a single building or campus, and whoever owns the building usually owns the network too. Build one and you need just three kinds of hardware: the PCs themselves, one Switch to plug them all into, and any shared device — like a Printer — wired into that same Switch. No Router, no Server: nothing here needs to leave the room.",
+  example:"Your college's computer lab — every desktop and the shared printer plugged into one switch in the corner of the room."},
+ {code:'WLAN', name:'Wireless LAN', range:'Same range, wireless', color:'#33e0c1',
+  tag:'The same network, minus the cable.',
+  body:"Exactly the same footprint as a LAN — same building, same owner — with the cables swapped for radio. It's a LAN's wireless twin, not a new distance category.",
+  example:"The Wi-Fi in your hostel room, or at a café in Bandra — you join the same local network as everyone else there, just without plugging in."},
+ {code:'MAN', name:'Metropolitan Area Network', range:'~5–50 km', color:'#b98bff',
+  tag:'A whole city, quietly connected.',
+  body:"Several LANs across one city, stitched together over a shared backbone — usually run by a telecom operator or municipal body rather than any one building's owner. In hardware terms: each site keeps its own Switch, and all of those Switches connect into a single central Router that acts as the backbone tying every building together. Nothing else is needed — no PCs, Phones, Printers, or Servers in this picture, just the backbone itself.",
+  example:"Mumbai Police's citywide CCTV network, linking cameras across every zone back to one control room, or the cable-TV line running to every building on your street."},
+ {code:'WAN', name:'Wide Area Network', range:'Countries to global', color:'#ffb648',
+  tag:'No edges. No borders. No limit.',
+  body:"No distance limit. A WAN connects networks across cities, countries, or continents — usually leasing bandwidth from carriers rather than owning every wire end to end. At its simplest that's two Routers, one per city, joined by a single long-distance link — that link is the WAN itself — plus a Server that both branches need to reach over that connection.",
+  example:"A bank linking its Mumbai branch to its Delhi head office over a leased line, with a shared Server both branches read from."}
+];
+
+let bubblesInit = false;
+let bubbles = [];
+let running = true;
+let rafId;
+let W, H;
+let readCount = 0;
+
+function initBubblesOnce(){
+  if(bubblesInit) return;
+  bubblesInit = true;
+  const stage = document.getElementById('nb-stage');
+  const canvas = document.getElementById('nb-lines');
+  const ctx = canvas.getContext('2d');
+
+  function resize(){
+    W=stage.clientWidth; H=stage.clientHeight; canvas.width=W; canvas.height=H;
+    if(!running && bubblesInit) drawLines();
+  }
+  window.addEventListener('resize', resize);
+  const isSmall = ()=> window.innerWidth<=520;
+
+  bubbles = TYPES.map((d,i)=>{
+    const el = document.createElement('div');
+    el.className='nb-bubble';
+    el.style.background = `radial-gradient(circle at 30% 28%,#ffffff55,${d.color})`;
+    el.style.boxShadow = `0 6px 24px ${d.color}55`;
+    el.textContent = d.code;
+    el.addEventListener('click', ()=>openModal(i));
+    stage.appendChild(el);
+    return {el, x:0,y:0,vx:0,vy:0, r: isSmall()?35:46, color:d.color, completed:false};
+  });
+
+  function randomize(b){ const s=0.7+Math.random()*0.9, a=Math.random()*Math.PI*2; b.vx=Math.cos(a)*s; b.vy=Math.sin(a)*s; }
+  function placeRandom(){ bubbles.forEach(b=>{ b.r=isSmall()?35:46; b.x=b.r+Math.random()*(W-2*b.r); b.y=b.r+Math.random()*(H-2*b.r); randomize(b); }); }
+
+  function hexBlend(a,b){
+    const pa=parseInt(a.slice(1),16), pb=parseInt(b.slice(1),16);
+    const ar=(pa>>16)&255, ag=(pa>>8)&255, ab=pa&255, br=(pb>>16)&255, bg=(pb>>8)&255, bb=pb&255;
+    const r=Math.round((ar+br)/2), g=Math.round((ag+bg)/2), bl=Math.round((ab+bb)/2);
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  function step(){
+    bubbles.forEach(b=>{
+      b.x+=b.vx; b.y+=b.vy;
+      if(b.x-b.r<0){b.x=b.r; b.vx=-b.vx;} if(b.x+b.r>W){b.x=W-b.r; b.vx=-b.vx;}
+      if(b.y-b.r<0){b.y=b.r; b.vy=-b.vy;} if(b.y+b.r>H){b.y=H-b.r; b.vy=-b.vy;}
+    });
+    for(let i=0;i<bubbles.length;i++) for(let j=i+1;j<bubbles.length;j++){
+      const a=bubbles[i], b=bubbles[j], dx=b.x-a.x, dy=b.y-a.y, dist=Math.hypot(dx,dy), minDist=a.r+b.r;
+      if(dist<minDist && dist>0){
+        const nx=dx/dist, ny=dy/dist, overlap=(minDist-dist)/2;
+        a.x-=nx*overlap; a.y-=ny*overlap; b.x+=nx*overlap; b.y+=ny*overlap;
+        const avn=a.vx*nx+a.vy*ny, bvn=b.vx*nx+b.vy*ny;
+        a.vx+=(bvn-avn)*nx; a.vy+=(bvn-avn)*ny; b.vx+=(avn-bvn)*nx; b.vy+=(avn-bvn)*ny;
+      }
+    }
+    bubbles.forEach(b=>{ b.el.style.left=(b.x-b.r)+'px'; b.el.style.top=(b.y-b.r)+'px'; b.el.style.width=b.el.style.height=(b.r*2)+'px'; });
+    drawLines();
+    if(running) rafId = requestAnimationFrame(step);
+  }
+
+  function drawLines(){
+    ctx.clearRect(0,0,W,H);
+    const threshold = W*0.4;
+    for(let i=0;i<bubbles.length;i++) for(let j=i+1;j<bubbles.length;j++){
+      const a=bubbles[i], b=bubbles[j], d=Math.hypot(b.x-a.x,b.y-a.y);
+      if(d<threshold){
+        const prox = 1-d/threshold;
+        if(a.completed && b.completed){ ctx.strokeStyle=hexBlend(a.color,b.color); ctx.lineWidth=2.4; ctx.globalAlpha=0.55+prox*0.4; }
+        else if(a.completed || b.completed){ ctx.strokeStyle=a.completed?a.color:b.color; ctx.lineWidth=1.6; ctx.globalAlpha=0.25+prox*0.3; }
+        else { ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.2; ctx.globalAlpha=prox*0.28; }
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); ctx.globalAlpha=1;
+      }
+    }
+  }
+
+  function settleInOrder(){
+    const n=bubbles.length, r=isSmall()?35:46, margin=r+16, usable=W-margin*2;
+    const starts = bubbles.map(b=>({x:b.x, y:b.y}));
+    bubbles.forEach((b,i)=>{
+      b.el.style.transition='left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1)';
+      const targetX = margin+(n===1?usable/2:(usable*i/(n-1)));
+      b.el.style.left=(targetX-r)+'px'; b.el.style.top=(H/2-r)+'px';
+      b.tx=targetX; b.ty=H/2;
+    });
+    // keep b.x/b.y (used to draw the lines) tracking the CSS ease-in-out
+    const DUR=800, settleStart=performance.now();
+    const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; // approx cubic-bezier(.4,0,.2,1)
+    (function settleFrame(t){
+      if(running){ bubbles.forEach(b=>{b.x=b.tx; b.y=b.ty;}); return; } // restarted: hand off to main loop
+      const p = Math.min(1,(t-settleStart)/DUR), e = ease(p);
+      bubbles.forEach((b,i)=>{ b.x = starts[i].x+(b.tx-starts[i].x)*e; b.y = starts[i].y+(b.ty-starts[i].y)*e; });
+      drawLines();
+      if(p<1) requestAnimationFrame(settleFrame);
+    })(settleStart);
+  }
+
+  const toggleBtn = document.getElementById('nb-toggle-btn');
+  const hint = document.getElementById('nb-hint');
+  toggleBtn.addEventListener('click', ()=>{
+    running = !running;
+    if(!running){
+      cancelAnimationFrame(rafId); settleInOrder();
+      toggleBtn.textContent='Start animation'; hint.textContent='Bubbles are in fixed order — click one to open it.';
+    } else {
+      bubbles.forEach(b=>{ b.el.style.transition=''; randomize(b); });
+      toggleBtn.textContent='Stop animation'; hint.textContent='Bubbles float and bounce — click one anytime to open it.';
+      rafId = requestAnimationFrame(step);
+    }
+  });
+
+  resize(); placeRandom(); rafId = requestAnimationFrame(step);
+}
+
+/* modal */
+const backdrop = document.getElementById('nb-modalBackdrop');
+let currentIndex = 0;
+function openModal(i){
+  currentIndex = i;
+  const d = TYPES[i];
+  document.getElementById('nb-mBadge').textContent = d.code;
+  document.getElementById('nb-mBadge').style.background = d.color;
+  document.getElementById('nb-mName').textContent = d.name;
+  document.getElementById('nb-mRange').textContent = d.range;
+  document.getElementById('nb-mTag').textContent = d.tag;
+  document.getElementById('nb-mBody').textContent = d.body;
+  document.getElementById('nb-mExample').innerHTML = '<b>Real world:</b> ' + d.example;
+  backdrop.classList.add('open');
+  markRead(i);
+}
+function markRead(i){
+  const b = bubbles[i];
+  if(b && !b.completed){
+    b.completed = true;
+    b.el.classList.add('done');
+    readCount++;
+    document.getElementById('nb-progress-fill').style.width = (readCount/5*100)+'%';
+    document.getElementById('nb-progress-label').textContent = readCount+' / 5 read';
+    if(readCount===5) document.getElementById('nb-unlock').classList.add('show');
+  }
+}
+document.getElementById('nb-modal-close').addEventListener('click', ()=>backdrop.classList.remove('open'));
+backdrop.addEventListener('click', e=>{ if(e.target===backdrop) backdrop.classList.remove('open'); });
+document.getElementById('nb-mPrev').addEventListener('click', ()=>openModal((currentIndex-1+TYPES.length)%TYPES.length));
+document.getElementById('nb-mNext').addEventListener('click', ()=>openModal((currentIndex+1)%TYPES.length));
+document.getElementById('nb-play-btn').addEventListener('click', ()=>showPage('nb-game'));
+
+/* ==================================================================
+   GAME PAGE
+   ================================================================== */
+const LEVELS = [
+  {
+    title:'Build a LAN for a college computer lab',
+    desc:'Pick only what a single lab on one floor actually needs, then wire it up.',
+    palette:['PC','Phone','Printer','Switch','Router','Server'],
+    validate(nodes, edges){
+      const c = counts(nodes);
+      if(!(c.PC>=1)) return fail('Add at least one PC — a lab needs computers.');
+      if(c.Printer!==1) return fail('You need exactly one shared Printer.');
+      if(c.Switch!==1) return fail('One Switch is enough to wire a single room together.');
+      if(c.Router||c.Server||c.Phone) return fail('A single-room LAN doesn\'t need a Router, Server, or Phone — remove the extra components.');
+      const sw = nodes.find(n=>n.type==='Switch');
+      const pcs = nodes.filter(n=>n.type==='PC');
+      const pr = nodes.find(n=>n.type==='Printer');
+      if(!pcs.every(pc=>connected(edges,pc.id,sw.id))) return fail('Every PC needs to connect to the Switch.');
+      if(!connected(edges,pr.id,sw.id)) return fail('The Printer needs to connect to the Switch too.');
+      return {ok:true};
+    }
+  },
+  {
+    title:'Connect three buildings',
+    desc:'Each building has its own local switch. Now link all three into one campus network.',
+    palette:['PC','Phone','Printer','Switch','Router','Server'],
+    validate(nodes, edges){
+      const c = counts(nodes);
+      if(c.Switch!==3) return fail('You need exactly 3 Switches — one per building.');
+      if(c.Router!==1) return fail('Add exactly 1 Router as the shared backbone linking the buildings.');
+      if(c.PC||c.Phone||c.Printer||c.Server) return fail('Keep this one simple — just the 3 Switches and 1 Router.');
+      const router = nodes.find(n=>n.type==='Router');
+      const switches = nodes.filter(n=>n.type==='Switch');
+      if(!switches.every(sw=>connected(edges,sw.id,router.id))) return fail('Every building\'s Switch must connect to the central Router.');
+      return {ok:true};
+    }
+  },
+  {
+    title:'Connect Mumbai and Delhi',
+    desc:'Two branches, one long-distance link, and a server they both need to reach.',
+    palette:['PC','Phone','Printer','Switch','Router','Server'],
+    validate(nodes, edges){
+      const c = counts(nodes);
+      if(c.Router!==2) return fail('You need exactly 2 Routers — one representing each city.');
+      if(c.Server!==1) return fail('Add exactly 1 Server for the data both branches need.');
+      if(c.PC||c.Phone||c.Printer||c.Switch) return fail('Keep this one simple — just the 2 Routers and 1 Server.');
+      const routers = nodes.filter(n=>n.type==='Router');
+      const server = nodes.find(n=>n.type==='Server');
+      if(!connected(edges,routers[0].id,routers[1].id)) return fail('The two Routers need a direct link — that\'s your WAN connection.');
+      if(!connected(edges,server.id,routers[0].id) && !connected(edges,server.id,routers[1].id)) return fail('The Server needs to connect to at least one Router.');
+      return {ok:true};
+    }
+  }
+];
+function fail(msg){ return {ok:false, msg}; }
+function counts(nodes){ const c={}; nodes.forEach(n=>c[n.type]=(c[n.type]||0)+1); return c; }
+function connected(edges,a,b){ return edges.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a)); }
+
+let level = 0, score = 0, nodeSeq = 0, levelLocked = false;
+let nodes = [], edges = [], selected = null;
+
+function renderLevel(){
+  levelLocked = false;
+  const L = LEVELS[level];
+  document.getElementById('nb-level-badge').textContent = `Level ${level+1} of 3`;
+  document.getElementById('nb-challenge-title').textContent = L.title;
+  document.getElementById('nb-challenge-desc').textContent = L.desc;
+  document.getElementById('nb-score-val').textContent = score;
+  const palette = document.getElementById('nb-palette');
+  palette.innerHTML = '';
+  L.palette.forEach(type=>{
+    const tile = document.createElement('div');
+    tile.className='nb-tile';
+    tile.innerHTML = ICONS[type] + `<span>${type}</span>`;
+    tile.addEventListener('click', ()=>addNode(type));
+    palette.appendChild(tile);
+  });
+  resetWorkspace();
+}
+
+function resetWorkspace(){
+  nodes = []; edges = []; selected = null; nodeSeq = 0;
+  document.getElementById('nb-feedback').className = 'nb-feedback';
+  document.getElementById('nb-feedback').textContent = '';
+  redrawWorkspace();
+}
+document.getElementById('nb-reset-btn').addEventListener('click', resetWorkspace);
+
+function addNode(type){
+  const ws = document.getElementById('nb-workspace');
+  const cols = 6, idx = nodes.length;
+  const x = 50 + (idx%cols)*110;
+  const y = 60 + Math.floor(idx/cols)*110;
+  nodes.push({id:'n'+(nodeSeq++), type, x:Math.min(x, ws.clientWidth-90), y});
+  redrawWorkspace();
+}
+function removeNode(id){
+  nodes = nodes.filter(n=>n.id!==id);
+  edges = edges.filter(e=>e[0]!==id && e[1]!==id);
+  if(selected===id) selected=null;
+  redrawWorkspace();
+}
+function toggleEdge(a,b){
+  const i = edges.findIndex(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a));
+  if(i>-1) edges.splice(i,1); else edges.push([a,b]);
+}
+
+function redrawWorkspace(){
+  const ws = document.getElementById('nb-workspace');
+  document.getElementById('nb-empty-hint').style.display = nodes.length ? 'none' : 'flex';
+  ws.querySelectorAll('.nb-node').forEach(n=>n.remove());
+  nodes.forEach(n=>{
+    const el = document.createElement('div');
+    el.className='nb-node'+(selected===n.id?' selected':'');
+    el.style.left=n.x+'px'; el.style.top=n.y+'px';
+    el.innerHTML = ICONS[n.type] + `<span>${n.type}</span><button class="nb-remove">✕</button>`;
+    el.dataset.id = n.id;
+
+    let dragging=false, moved=false, onRemove=false, sx=0, sy=0, ox=0, oy=0;
+    el.addEventListener('pointerdown', e=>{
+      if(e.target.closest('.nb-remove')){ onRemove=true; return; }
+      onRemove=false; dragging=true; moved=false; sx=e.clientX; sy=e.clientY; ox=n.x; oy=n.y;
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', e=>{
+      if(!dragging) return;
+      const dx=e.clientX-sx, dy=e.clientY-sy;
+      if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
+      if(moved){
+        n.x = Math.max(0, Math.min(ws.clientWidth-74, ox+dx));
+        n.y = Math.max(0, Math.min(ws.clientHeight-74, oy+dy));
+        el.style.left=n.x+'px'; el.style.top=n.y+'px';
+        drawEdges();
+      }
+    });
+    el.addEventListener('pointerup', ()=>{
+      if(onRemove){ onRemove=false; return; }
+      dragging=false;
+      if(!moved){
+        if(selected===null){ selected=n.id; }
+        else if(selected===n.id){ selected=null; }
+        else { toggleEdge(selected, n.id); selected=null; }
+        redrawWorkspace();
+      }
+    });
+    ws.appendChild(el);
+  });
+  drawEdges();
+}
+if(!window.__nbRemoveDelegated){
+  window.__nbRemoveDelegated = true;
+  document.getElementById('nb-workspace').addEventListener('click', e=>{
+    const btn = e.target.closest('.nb-remove');
+    if(!btn) return;
+    e.stopPropagation();
+    const nodeEl = btn.closest('.nb-node');
+    if(nodeEl) removeNode(nodeEl.dataset.id);
+  });
+}
+function drawEdges(){
+  const svg = document.getElementById('nb-edges');
+  svg.innerHTML = edges.map(([a,b])=>{
+    const na=nodes.find(n=>n.id===a), nb=nodes.find(n=>n.id===b);
+    if(!na||!nb) return '';
+    return `<line x1="${na.x+37}" y1="${na.y+37}" x2="${nb.x+37}" y2="${nb.y+37}" stroke="#4da3ff" stroke-width="2.5"/>`;
+  }).join('');
+}
+
+document.getElementById('nb-check-btn').addEventListener('click', ()=>{
+  if(levelLocked) return;
+  const L = LEVELS[level];
+  const result = L.validate(nodes, edges);
+  const fb = document.getElementById('nb-feedback');
+  if(result.ok){
+    levelLocked = true;
+    score += 100;
+    fb.className = 'nb-feedback show good';
+    fb.textContent = '🎉 Level complete! Nicely wired.';
+    document.getElementById('nb-score-val').textContent = score;
+    setTimeout(()=>{
+      if(level<LEVELS.length-1){ level++; renderLevel(); }
+      else { showResults(); }
+    }, 1100);
+  } else {
+    fb.className = 'nb-feedback show bad';
+    fb.textContent = '❌ ' + result.msg + ' Try again, or go back and re-read.';
+  }
+});
+
+function showResults(){
+  document.getElementById('nb-final-score').textContent = score + ' / 300';
+  showPage('nb-results');
+}
+document.getElementById('nb-replay-btn').addEventListener('click', ()=>{
+  level=0; score=0; showPage('nb-game');
+});
+
+})();
+</script>
+</body>
+</html>
